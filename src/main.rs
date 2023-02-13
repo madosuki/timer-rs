@@ -11,32 +11,28 @@ use std::thread;
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
-    // Hour, optionally.
+    /// Hour, type is 64bit unsigned integer, optionally.
     #[arg(short = 'H', long, default_value_t = 0)]
     hour: u64,
 
-    // Minutes, optionally.
+    /// Minutes, type is 64bit unsigned integer, optionally.
     #[arg(short = 'm', long, default_value_t = 0)]
     minutes: u64,
 
-    // Seconds, optionally.
+    /// Seconds, type is 64bit unsigned integer, optionally.
     #[arg(short = 's', long, default_value_t = 0)]
     seconds: u64,
     
-    // Message, output to stdout when at the specified time. Optionally.
+    /// Message, type is string, output to stdout when at the specified time. Optionally.
     #[arg(short = 'M', long, default_value("時間です"))]
     message: String,
     
-    // for play audio to the end, optionally.
-    #[arg(short = 'd', long)]
-    duration: Option<u64>,
-
-    // sound file path, optionally.
+    /// sound file path, optionally.
     #[arg(short = 'f', long)]
     file_path: Option<String>,
 }
 
-fn timer(sec: u64, msg: &str, file_path_str: Option<String>, sound_duration_sec: Option<u64>) {
+fn timer(sec: u64, msg: &str, file_path_str: Option<String>) {
     println!("Waitineg...: {} seconds", &sec);
                                                                                                         
     thread::sleep(Duration::from_secs(sec));
@@ -46,12 +42,7 @@ fn timer(sec: u64, msg: &str, file_path_str: Option<String>, sound_duration_sec:
         return;
     };
     
-    let duration = match sound_duration_sec {
-        Some(d) => d,
-        None => 1,
-    };
-    
-    play_audio_from_file(&p_str, duration);
+    play_audio_from_file(&p_str);
 }
 
 fn calc_sec(h: u64, m: u64, s: u64) -> u64 {
@@ -68,7 +59,7 @@ fn calc_sec(h: u64, m: u64, s: u64) -> u64 {
    From::from(result)
 }
 
-fn play_audio_from_file(path_str: &str, sound_sec: u64) {
+fn play_audio_from_file(path_str: &str) {
    let Ok(_r) = OutputStream::try_default() else {
     return;
    };
@@ -81,13 +72,18 @@ fn play_audio_from_file(path_str: &str, sound_sec: u64) {
    };
    
    let buf = BufReader::new(_file);
+
    let Ok(_source) = Decoder::new(buf) else {
        return;
+   };
+
+   let Some(total_duration) = _source.total_duration() else {
+    return;
    };
    
    let _ = _output_stream_handel.play_raw(_source.convert_samples());
    
-   std::thread::sleep(Duration::from_secs(sound_sec));
+   std::thread::sleep(total_duration);
 }
 
 fn main() {
@@ -99,6 +95,5 @@ fn main() {
     let s = args.seconds;
     let sec = calc_sec(h, m, s);
     
-    
-    timer(sec, &args.message, args.file_path, args.duration);
+    timer(sec, &args.message, args.file_path);
 }
