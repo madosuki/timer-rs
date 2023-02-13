@@ -56,7 +56,7 @@ fn calc_sec(h: u64, m: u64, s: u64) -> u64 {
     result = result + (m / 60);
    }
    
-   From::from(result)
+   result
 }
 
 fn play_audio_from_file(path_str: &str) {
