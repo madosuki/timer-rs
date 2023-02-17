@@ -49,11 +49,11 @@ fn calc_sec(h: u64, m: u64, s: u64) -> u64 {
    let mut result = s;
    
    if h > 0 {
-    result = result + (h / 60 / 60);
+    result = result + (h * 60 * 60);
    }
    
    if m > 0 {
-    result = result + (m / 60);
+    result = result + (m * 60);
    }
    
    result
